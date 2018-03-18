@@ -52,7 +52,7 @@ namespace Mindmap
             var offsetItem = _isLeft ? 20.0 : 0.0;
             var offsetParent = !_isLeft ? 0.0 : 20.0;
 
-            var point1 = new Point(_isLeft ? tvi.ActualWidth - offsetItem :  0.0, 
+            var point1 = new Point(_isLeft ? tvi.ActualWidth - offsetItem :  20.0, 
                 tvi.ActualHeight / 2);
 
             var startPoint = tvi.TranslatePoint(point1, 
