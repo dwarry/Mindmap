@@ -37,9 +37,6 @@ namespace Mindmap.Persistence
             {
                 result = new MindMapRoot("", Enumerable.Empty<XElement>());
             }
-            
-
-            
 
             return result;
         }
@@ -60,9 +57,9 @@ namespace Mindmap.Persistence
                 return !headingStyles.ContainsKey(styleIndex);
             }
 
-            var titleElement = doc.Root.Descendants().FirstOrDefault(x => x.Name == OneNoteElements.Title);
+            var titleElement = doc.Root.Descendants(OneNoteElements.Title).FirstOrDefault();
 
-            var title = titleElement.Descendants().FirstOrDefault(x => x.Name == OneNoteElements.T).Value;
+            var title = GetTextContents(titleElement.Descendants(OneNoteElements.T).FirstOrDefault());
 
             var outline = doc.Root.Elements(OneNoteElements.Outline).FirstOrDefault();
 
@@ -77,7 +74,7 @@ namespace Mindmap.Persistence
             var nodeData = ParseOutlineChildren(children.SkipWhile(x => !isHeading(x)), headingStyles);
 
             IMindMapData parent = root;
-
+            
             var ancestors = new Stack<IMindMapData>();
 
             ancestors.Push(root);
@@ -99,6 +96,25 @@ namespace Mindmap.Persistence
             return root;
         }
 
+        private string GetTextContents(XElement element)
+        {
+            var t = element.Value ?? "";
+
+            if (t.StartsWith("<span"))
+            {
+        
+                var endTagIndex = t?.IndexOf(">") ?? -1;
+
+                if (endTagIndex > -1)
+                {
+                    var result = t.Substring(endTagIndex + 1, t.Length - endTagIndex - 8);
+
+                    return result;
+                }
+            }
+
+            return t;
+        }
 
         private
             IEnumerable<(int indent, string title, IEnumerable<XElement> contents)> ParseOutlineChildren(
@@ -122,7 +138,7 @@ namespace Mindmap.Persistence
 
                     contents.Clear();
 
-                    title = elem.Elements(OneNoteElements.T).First().Value;
+                    title = GetTextContents(elem.Element(OneNoteElements.T));
 
                     depth = headingIndexes[styleIndex];
                 }
