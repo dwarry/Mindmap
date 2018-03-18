@@ -123,6 +123,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MainWindowVM.cs" />
     <Compile Include="MindMapControl.xaml.cs">
       <DependentUpon>MindMapControl.xaml</DependentUpon>
     </Compile>

@@ -19,10 +19,10 @@ namespace Mindmap.Domain
         public MindMapRoot(string title, IEnumerable<XElement> content)
         {
             Title = title;
+
             Content = new ReactiveList<XElement>(content);
 
-            var subscription = 
-            Children.Changed.Subscribe(x =>
+            var subscription = Children.Changed.Subscribe(x =>
             {
                 using (var leftSupression = LeftChildren.SuppressChangeNotifications())
                 using (var rightSupression = RightChildren.SuppressChangeNotifications())

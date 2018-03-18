@@ -17,10 +17,6 @@ using System.Windows.Shapes;
 
 using MahApps.Metro.Controls;
 
-using Mindmap.Domain;
-using Mindmap.Persistence;
-
-using ReactiveUI;
 using ReactiveUI.Events;
 
 namespace Mindmap
@@ -32,6 +28,10 @@ namespace Mindmap
     {
         private readonly MainWindowVM _vm = new MainWindowVM();
 
+        private  MindMapLinkAdorner _leftAdorner;
+
+        private  MindMapLinkAdorner _rightAdorner;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -42,7 +42,9 @@ namespace Mindmap
             {
                 var adornerLayer = AdornerLayer.GetAdornerLayer(_leftTree);
 
-                adornerLayer.Add(new MindMapLinkAdorner(_leftTree, MainLabel, true));
+                _leftAdorner = new MindMapLinkAdorner(_leftTree, MainLabel, true);
+
+                adornerLayer.Add(_leftAdorner); 
 
                 adornerLayer = AdornerLayer.GetAdornerLayer(_rightTree);
 
@@ -50,43 +52,16 @@ namespace Mindmap
             });
 
 
-            this.Events().Activated.Subscribe(_ => _vm.LoadMindMapFromCurrentlyActivePage());
+            this.Events().Activated.Subscribe(_ =>
+            {
+                _vm.LoadMindMapFromCurrentlyActivePage();
+                _leftTree.InvalidateVisual();
+                _rightTree.InvalidateVisual();
+            });
 
             this.Events().Deactivated.Subscribe(_ => _vm.SaveMindMap());
         }
 
 
-    }
-
-
-    public class MainWindowVM : ReactiveObject
-    {
-        private readonly ILoader _loader;
-        private readonly ISaver _saver;
-
-        public MainWindowVM(ILoader loader = null, ISaver saver = null)
-        {
-            _loader = loader ?? new ActiveOneNotePageLoader();
-            _saver = saver ?? new OneNotePageSaver();
-        }
-
-        private IMindMapRoot _root;
-
-
-        public IMindMapRoot Root
-        {
-            get { return _root; }
-            set { this.RaiseAndSetIfChanged(ref _root, value); }
-        }
-
-        public void LoadMindMapFromCurrentlyActivePage()
-        {
-            Root = _loader.Load();
-        }
-
-        public void SaveMindMap()
-        {
-            _saver.Save(Root);
-        }
     }
 }
