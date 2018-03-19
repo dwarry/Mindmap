@@ -51,5 +51,7 @@ namespace Mindmap.Domain
 
         int Index { get; }
 
+
+        string ObjectId { get; set; }
     }
 }

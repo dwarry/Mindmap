@@ -11,13 +11,15 @@ namespace Mindmap.Domain
     {
         private ReactiveList<XElement> _content;
 
+        private string _objectId;
+
         private int _depth;
 
         private int _index;
 
         private string _title;
 
-        public MindMapElement(string title, IMindMapData parent, ReactiveList<XElement> content, int depth)
+        public MindMapElement(string title, IMindMapData parent, ReactiveList<XElement> content, int depth, string objectId)
         {
             Parent = parent ?? throw new ArgumentNullException(nameof(parent));
 
@@ -28,6 +30,8 @@ namespace Mindmap.Domain
             if (depth < 1) throw new ArgumentOutOfRangeException(nameof(depth), "must be positive");
 
             _depth = depth;
+
+            _objectId = objectId;
 
             _index = parent.Children.Count;
 
@@ -64,6 +68,7 @@ namespace Mindmap.Domain
             set => this.RaiseAndSetIfChanged(ref _index, value);
         }
 
+        public string ObjectId { get; set; }
 
         public ReactiveList<IMindMapElement> Children { get; } = new ReactiveList<IMindMapElement>();
 

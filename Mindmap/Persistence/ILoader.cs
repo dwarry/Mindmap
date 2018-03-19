@@ -18,9 +18,6 @@ namespace Mindmap.Persistence
 
     public class ActiveOneNotePageLoader : ILoader
     {
-        private static readonly XNamespace
-            OnenoteNamespace = "http://schemas.microsoft.com/office/onenote/2013/onenote";
-
 
         public IMindMapRoot Load()
         {
@@ -44,15 +41,15 @@ namespace Mindmap.Persistence
         internal IMindMapRoot ParsePageData(XDocument doc)
         {
             var styles = doc.Root.Elements(OneNoteElements.QuickStyleDef)
-                .ToDictionary(x => x.Attribute("index").Value, x => x.Attribute("name").Value);
-
+                .ToDictionary(x => x.Attribute(OneNoteAttributes.Index)?.Value, 
+                              x => x.Attribute(OneNoteAttributes.Name)?.Value);
 
             var headingStyles = styles.Where(x => x.Value.StartsWith("h"))
                 .ToDictionary(x => x.Key, x => int.Parse(x.Value.Substring(1)));
 
             bool isHeading(XElement x)
             {
-                var styleIndex = x.Attribute("quickStyleIndex")?.Value ?? "";
+                var styleIndex = x.Attribute(OneNoteAttributes.QuickStyleIndex)?.Value ?? "";
 
                 return !headingStyles.ContainsKey(styleIndex);
             }
@@ -79,7 +76,7 @@ namespace Mindmap.Persistence
 
             ancestors.Push(root);
 
-            foreach (var (depth, nodeTitle, contents) in nodeData)
+            foreach (var (objectId, depth, nodeTitle, contents) in nodeData)
             {
                 while (ancestors.Peek().Depth >= depth)
                 {
@@ -88,7 +85,7 @@ namespace Mindmap.Persistence
 
                 parent = ancestors.Peek();
 
-                var element = new MindMapElement(nodeTitle, parent, new ReactiveList<XElement>(contents), depth);
+                var element = new MindMapElement(nodeTitle, parent, new ReactiveList<XElement>(contents), depth, objectId);
 
                 ancestors.Push(element);
             }
@@ -116,24 +113,26 @@ namespace Mindmap.Persistence
             return t;
         }
 
-        private
-            IEnumerable<(int indent, string title, IEnumerable<XElement> contents)> ParseOutlineChildren(
+        private IEnumerable<(string objectId, int indent, string title, IEnumerable<XElement> contents)> ParseOutlineChildren(
                 IEnumerable<XElement> outlineChildren,
                 IDictionary<string, int> headingIndexes)
         {
             var depth = 0;
             string title = null;
             var contents = new List<XElement>();
+            var objectId = "";
 
             foreach (var elem in outlineChildren)
             {
                 var styleIndex = elem.Attribute("quickStyleIndex")?.Value;
 
+                objectId = elem.Attribute(OneNoteAttributes.ObjectId)?.Value ?? "";
+
                 if (styleIndex != null && headingIndexes.ContainsKey(styleIndex))
                 {
                     if (depth > 0)
                     {
-                        yield return (depth, title, new List<XElement>(contents));
+                        yield return (objectId, depth, title, new List<XElement>(contents));
                     }
 
                     contents.Clear();
@@ -149,7 +148,7 @@ namespace Mindmap.Persistence
                 }
             }
 
-            yield return (depth, title, new List<XElement>(contents));
+            yield return (objectId, depth, title, new List<XElement>(contents));
         }
 
 
@@ -164,17 +163,6 @@ namespace Mindmap.Persistence
             app.GetPageContent(w.CurrentPageId, out var xml);
 
             return (w.CurrentPageId, XDocument.Parse(xml));
-        }
-
-
-        private static class OneNoteElements
-        {
-            public static readonly XName QuickStyleDef = OnenoteNamespace + "QuickStyleDef";
-            public static readonly XName Title = OnenoteNamespace + "Title";
-            public static readonly XName Outline = OnenoteNamespace + "Outline";
-            public static readonly XName Oe = OnenoteNamespace + "OE";
-            public static readonly XName OeChildren = OnenoteNamespace + "OEChildren";
-            public static readonly XName T = OnenoteNamespace + "T";
         }
     }
 }

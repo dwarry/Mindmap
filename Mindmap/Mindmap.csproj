@@ -130,6 +130,7 @@
     <Compile Include="MindMapLinkAdorner.cs" />
     <Compile Include="Persistence\ILoader.cs" />
     <Compile Include="Persistence\ISaver.cs" />
+    <Compile Include="Persistence\OneNoteElements.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
